@@ -10,8 +10,6 @@ from sqlalchemy import create_engine
 import json
 import random, string
 
-SECRET_KEY = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in xrange(32))
-
 engine = create_engine('sqlite:///catalog.db', connect_args={'check_same_thread': False})
 
 Base.metadata.bind = engine
@@ -66,7 +64,9 @@ def register():
         session.add(newUser)
         session.commit()
 
-        return "User Created!"
+        flash("You are registered! Login now.")
+
+        return redirect(url_for('index'))
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -105,7 +105,49 @@ def logout():
     return redirect(url_for('index'))
 
 
+@app.route('/catalog/items/new', methods=['GET', 'POST'])
+def createItem():
+    if request.method == 'GET':
+        categories = session.query(Category).all()
+        return render_template('newitem.html', categories = categories)
+    if request.method == 'POST':
+        title = request.form['title']
+        description = request.form['description']
+        category = request.form['category']
+        print title
+        print description
+        print category
+        if (category or description or category) is None:
+            response = make_response(json.dumps('Not all fields were filled out.'), 409)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+        categoryObject = session.query(Category).filter_by(name=category).first()
+        newItem = Item(title = title, description = description, category_id = categoryObject.id)
+        session.add(newItem)
+        session.commit()
+        flash('%s item created!' % newItem.title)
+        return redirect(url_for('index'))
+
+
+@app.route('/catalog/categories/new', methods=['GET', 'POST'])
+def createCategory():
+    if request.method == 'GET':
+        return render_template('newcategory.html')
+    if request.method == 'POST':
+        name = request.form['name']
+        if name is None:
+            response = make_response(json.dumps('Not all fields were filled out.'), 409)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+        newCategory = Category(name = name)
+        session.add(newCategory)
+        session.commit()
+        flash("%s category created." % newCategory.name)
+        return redirect(url_for('index'))
+
+
+
 if __name__ == '__main__':
     app.debug = True
-    app.secret_key = 'ASDhshhWj1654g651j51as5d61as6d5'
-    app.run(host='0.0.0.0', port=8000)
+    app.secret_key = 'ASDhshhWj1654g651j51cvxs5d61as6d5'
+    app.run(host='0.0.0.0', port=5000)

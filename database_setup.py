@@ -11,7 +11,7 @@ Base = declarative_base()
 class Category(Base):
     __tablename__ = 'category'
     id = Column(Integer, primary_key=True)
-    name = Column(String(32))
+    name = Column(String(32), unique=True, index=True)
 
 
 

@@ -1,0 +1,21 @@
+<h1>Create new Item</h1>
+
+<form action="/catalog/items/new" method="POST">
+
+    <label for="title">Title</label>
+    <input type="text" placeholder="Title" name="title" autocomplete="off">
+    <br>
+    <label for="description">Description</label>
+    <input type="text" name="description" placeholder="Description goes here..." autocomplete="off">
+    <br>
+    <label for="category">Category</label>
+    <select name="category">
+        {%for category in categories%}
+        <option value="{{category.name}}" name="{{category.name}}">{{category.name}}</option>
+        {%endfor%}
+    </select>
+    <br>
+    <input type="submit" value="Create">
+    
+
+</form>
