@@ -1,0 +1,10 @@
+<h1>Items under: {{category.name}}</h1>
+<br>
+<br>
+{%for item in items%}
+
+<a href="/catalog/{{category.name}}/{{item.title}}">{{item.title}}</a>
+
+<br>
+<br>
+{%endfor%}

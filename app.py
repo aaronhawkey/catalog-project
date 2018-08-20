@@ -23,7 +23,8 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def index():
-    return render_template('index.html')
+    categories = session.query(Category).all()
+    return render_template('index.html', categories = categories)
 
 
 @app.route('/register', methods=['GET','POST'])
@@ -144,6 +145,26 @@ def createCategory():
         session.commit()
         flash("%s category created." % newCategory.name)
         return redirect(url_for('index'))
+
+
+@app.route('/catalog/<name>', methods=['GET'])
+def getItemsFromCategory(name):
+    thecategory = session.query(Category).filter_by(name= name).first()
+    items = session.query(Item).filter_by(category_id = thecategory.id).all()
+    return render_template('categoryitems.html', items = items, category = thecategory)
+
+
+@app.route('/catalog/<name>/<title>', methods=['GET'])
+def getItem(name, title):
+    if request.method == 'GET':
+        thecategory = session.query(Category).filter_by(name= name).first()
+        item = session.query(Item).filter_by(title = title).first()
+        if item.category_id != thecategory.id:
+            response = make_response(json.dumps('Page not found'), 404)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+        
+        return render_template('item.html', item = item)
 
 
 
