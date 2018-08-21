@@ -24,7 +24,8 @@ app = Flask(__name__)
 @app.route('/', methods=['GET'])
 def index():
     categories = session.query(Category).all()
-    return render_template('index.html', categories = categories)
+    items = session.query(Item).order_by(Item.id.desc()).limit(10).all()
+    return render_template('index.html', categories = categories, items = items)
 
 
 @app.route('/register', methods=['GET','POST'])
@@ -130,6 +131,80 @@ def createItem():
         return redirect(url_for('index'))
 
 
+@app.route('/catalog/<catName>/<itemName>/edit', methods=['GET', 'POST'])
+def editItem(catName,itemName):
+    if request.method == 'GET':
+        item = session.query(Item).filter_by(title=itemName).first()
+        cat = session.query(Category).filter_by(name=catName).first()
+        categories = session.query(Category).all()
+        
+        if cat == None or item == None:
+            response = make_response(json.dumps('Page not found.'), 404)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+        
+        if cat.id != item.category_id:
+            response = make_response(json.dumps('Page not found.'), 404)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+        return render_template('edititem.html', item = item, categories = categories)
+    if request.method == 'POST':
+        newTitle = request.form['title']
+        newDescription = request.form['description']
+        newCatName = request.form['category']
+
+        if newTitle == '':
+            response = make_response(json.dumps('Title must be completd.'), 409)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+    
+        if newCatName == '':
+            response = make_response(json.dumps('Category must be chosen.'), 409)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+
+        item = session.query(Item).filter_by(title=itemName).first()
+        newCat = session.query(Category).filter_by(name=newCatName).first()
+        item.title = newTitle
+        item.description = newDescription
+        item.cat = newCat
+
+        session.add(item)
+        session.commit()
+        flash('Item %s edited' % item.title)
+        return redirect(url_for('index'))
+
+
+@app.route('/catalog/<catName>/<itemName>/delete', methods=['GET', 'POST'])
+def deleteItem(catName,itemName):
+    if request.method == 'GET':
+        queryitem = session.query(Item).filter_by(title = itemName).first()
+        if queryitem == None:
+            response = make_response(json.dumps('Page not found.'), 404)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+        
+        if queryitem.category.name != catName:
+            response = make_response(json.dumps('Page not found.'), 404)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+        
+        return render_template('deleteitem.html', item = queryitem)
+
+    if request.method == 'POST':
+        item = session.query(Item).filter_by(id = request.form['itemID']).first()
+
+        if item == None:
+            response = make_response(json.dumps('Item not found.'), 409)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+
+        session.delete(item)
+        session.commit()
+        flash('%s item deleted.' % item.title)
+        return redirect(url_for('index'))
+
+
 @app.route('/catalog/categories/new', methods=['GET', 'POST'])
 def createCategory():
     if request.method == 'GET':
@@ -146,6 +221,34 @@ def createCategory():
         flash("%s category created." % newCategory.name)
         return redirect(url_for('index'))
 
+
+@app.route('/catalog/<category>/edit', methods=['GET', 'POST'])
+def editCategory(category):
+    if request.method == 'GET':
+        oldCategory = session.query(Category).filter_by(name=category).first()
+        return render_template('editcategory.html', category=oldCategory)
+    
+    if request.method == 'POST':
+        newName = request.form['newName']
+        if newName is None:
+            response = make_response(json.dumps('Not all fields were filled out.'), 409)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+
+        test = session.query(Category).filter_by(name = newName).first()
+
+        if test is not None:
+            response = make_response(json.dumps('Category already exsists.'), 409)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+
+        oldCategory = session.query(Category).filter_by(name=category).first()
+        oldCategory.name = newName
+        session.add(oldCategory)
+        session.commit()
+        flash('%s category changed to: %s' % (category, newName))
+        return redirect(url_for('index'))
+        
 
 @app.route('/catalog/<name>', methods=['GET'])
 def getItemsFromCategory(name):

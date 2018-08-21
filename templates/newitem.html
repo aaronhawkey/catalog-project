@@ -1,6 +1,6 @@
 <h1>Create new Item</h1>
 
-<form action="/catalog/items/new" method="POST">
+<form action="{{url_for('createItem')}}" method="POST">
 
     <label for="title">Title</label>
     <input type="text" placeholder="Title" name="title" autocomplete="off">

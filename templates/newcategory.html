@@ -1,9 +1,7 @@
 <h1>Create New Category</h1>
-<form action="/catalog/categories/new" method="POST">
-
+<form action="{{url_for('createCategory')}}" method="POST">
     <label for="name">Name</label>
     <input type="text" name="name">
     <br>
     <input type="submit" value="Create">
-
 </form>

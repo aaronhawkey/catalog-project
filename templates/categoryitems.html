@@ -1,9 +1,11 @@
 <h1>Items under: {{category.name}}</h1>
+<a href="{{url_for('editCategory', category = category.name)}}">Edit Category</a>
 <br>
 <br>
+<hr>
 {%for item in items%}
 
-<a href="/catalog/{{category.name}}/{{item.title}}">{{item.title}}</a>
+<a href="{{url_for('getItem', name = item.category.name, title = item.title)}}">{{item.title}}</a>
 
 <br>
 <br>
