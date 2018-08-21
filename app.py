@@ -110,21 +110,38 @@ def logout():
 @app.route('/catalog/items/new', methods=['GET', 'POST'])
 def createItem():
     if request.method == 'GET':
+        try:
+            user_id = login_session['user_id']
+        except:
+            return redirect(url_for('login'))
         categories = session.query(Category).all()
         return render_template('newitem.html', categories = categories)
+    
     if request.method == 'POST':
+        
+        try:
+            user_id = login_session['user_id']
+        except:
+            response = make_response(json.dumps('Not Authorized.'), 401)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+        
         title = request.form['title']
         description = request.form['description']
         category = request.form['category']
-        print title
-        print description
-        print category
         if (category or description or category) is None:
             response = make_response(json.dumps('Not all fields were filled out.'), 409)
             response.headers['Content-Type'] = 'application/json'
             return response
+
+        testQuery = session.query(Item).filter_by(title = title).one()
+        if testQuery is not None:
+            response = make_response(json.dumps('Item already exists'), 400)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+        
         categoryObject = session.query(Category).filter_by(name=category).first()
-        newItem = Item(title = title, description = description, category_id = categoryObject.id)
+        newItem = Item(title = title, description = description, category_id = categoryObject.id, user_id = user_id)
         session.add(newItem)
         session.commit()
         flash('%s item created!' % newItem.title)
@@ -133,8 +150,21 @@ def createItem():
 
 @app.route('/catalog/<catName>/<itemName>/edit', methods=['GET', 'POST'])
 def editItem(catName,itemName):
+    # GET
     if request.method == 'GET':
+        
+        try:
+            user_id = login_session['user_id']
+        except:
+            return redirect(url_for('login'))
+        
         item = session.query(Item).filter_by(title=itemName).first()
+
+        if user_id != item.user_id:
+            response = make_response(json.dumps('User not authorized to edit.'), 401)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+
         cat = session.query(Category).filter_by(name=catName).first()
         categories = session.query(Category).all()
         
@@ -148,10 +178,22 @@ def editItem(catName,itemName):
             response.headers['Content-Type'] = 'application/json'
             return response
         return render_template('edititem.html', item = item, categories = categories)
+    # POST
     if request.method == 'POST':
         newTitle = request.form['title']
         newDescription = request.form['description']
         newCatName = request.form['category']
+        item = session.query(Item).filter_by(title=itemName).first()
+        try:
+            user_id = login_session['user_id']
+        except:
+            return redirect(url_for('login'))
+        
+        if item.user_id != user_id:
+            response = make_response(json.dumps('User not authorized to edit.'), 401)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+
 
         if newTitle == '':
             response = make_response(json.dumps('Title must be completd.'), 409)
@@ -163,7 +205,6 @@ def editItem(catName,itemName):
             response.headers['Content-Type'] = 'application/json'
             return response
 
-        item = session.query(Item).filter_by(title=itemName).first()
         newCat = session.query(Category).filter_by(name=newCatName).first()
         item.title = newTitle
         item.description = newDescription
@@ -179,6 +220,11 @@ def editItem(catName,itemName):
 def deleteItem(catName,itemName):
     if request.method == 'GET':
         queryitem = session.query(Item).filter_by(title = itemName).first()
+        try:
+            user_id = login_session['user_id']
+        except:
+            return redirect(url_for('login'))
+        
         if queryitem == None:
             response = make_response(json.dumps('Page not found.'), 404)
             response.headers['Content-Type'] = 'application/json'
@@ -189,13 +235,32 @@ def deleteItem(catName,itemName):
             response.headers['Content-Type'] = 'application/json'
             return response
         
+        if user_id != queryitem.user_id:
+            response = make_response(json.dumps('User not authorized access.'), 401)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+        
+        
         return render_template('deleteitem.html', item = queryitem)
 
     if request.method == 'POST':
         item = session.query(Item).filter_by(id = request.form['itemID']).first()
 
+        try:
+            user_id = login_session['user_id']
+        except:
+            response = make_response(json.dumps('User not authorized access.'), 401)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+
+
         if item == None:
             response = make_response(json.dumps('Item not found.'), 409)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+
+        if item.user_id != user_id:
+            response = make_response(json.dumps('User not authorized access.'), 401)
             response.headers['Content-Type'] = 'application/json'
             return response
 
@@ -208,14 +273,27 @@ def deleteItem(catName,itemName):
 @app.route('/catalog/categories/new', methods=['GET', 'POST'])
 def createCategory():
     if request.method == 'GET':
+        try:
+            user_id = login_session['user_id']
+        except:
+            return redirect(url_for('login'))
+
         return render_template('newcategory.html')
     if request.method == 'POST':
         name = request.form['name']
+
+        try:
+            user_id = login_session['user_id']
+        except:
+            response = make_response(json.dumps('Must be logged in.'), 401)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+
         if name is None:
             response = make_response(json.dumps('Not all fields were filled out.'), 409)
             response.headers['Content-Type'] = 'application/json'
             return response
-        newCategory = Category(name = name)
+        newCategory = Category(name = name, user_id = user_id)
         session.add(newCategory)
         session.commit()
         flash("%s category created." % newCategory.name)
@@ -225,11 +303,30 @@ def createCategory():
 @app.route('/catalog/<category>/edit', methods=['GET', 'POST'])
 def editCategory(category):
     if request.method == 'GET':
+        try:
+            user_id = login_session['user_id']
+        except:
+            return redirect(url_for('login'))
+        
         oldCategory = session.query(Category).filter_by(name=category).first()
+
+        if user_id != oldCategory.user_id:
+            response = make_response(json.dumps('User not authorized access.'), 401)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+
         return render_template('editcategory.html', category=oldCategory)
     
     if request.method == 'POST':
         newName = request.form['newName']
+
+        try:
+            user_id = login_session['user_id']
+        except:
+            response = make_response(json.dumps('Must be logged in.'), 401)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+        
         if newName is None:
             response = make_response(json.dumps('Not all fields were filled out.'), 409)
             response.headers['Content-Type'] = 'application/json'
@@ -243,6 +340,13 @@ def editCategory(category):
             return response
 
         oldCategory = session.query(Category).filter_by(name=category).first()
+
+        if oldCategory.user_id != user_id:
+            response = make_response(json.dumps('User not authorized access.'), 401)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+        
+        
         oldCategory.name = newName
         session.add(oldCategory)
         session.commit()

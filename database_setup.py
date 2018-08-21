@@ -9,24 +9,6 @@ import datetime
 Base = declarative_base()
 
 
-class Category(Base):
-    __tablename__ = 'category'
-    id = Column(Integer, primary_key=True)
-    name = Column(String(32), unique=True, index=True)
-    date_created = Column(DateTime, default=datetime.datetime.now())
-
-
-
-class Item(Base):
-    __tablename__ = 'item'
-    id = Column(Integer, primary_key=True)
-    title = Column(String(32))
-    description = Column(String)
-    category_id = Column(Integer, ForeignKey('category.id'))
-    category = relationship(Category)
-    date_created = Column(DateTime, default=datetime.datetime.now())
-
-
 class User(Base):
     __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
@@ -42,6 +24,31 @@ class User(Base):
     
     def verify_password(self, password):
         return pwd_context.verify(password, self.password_hash)
+
+
+
+class Category(Base):
+    __tablename__ = 'category'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(32), unique=True, index=True)
+    date_created = Column(DateTime, default=datetime.datetime.now())
+    user_id = Column(Integer, ForeignKey('user.id'))
+    user = relationship(User)
+
+
+
+class Item(Base):
+    __tablename__ = 'item'
+    id = Column(Integer, primary_key=True)
+    title = Column(String(32))
+    description = Column(String)
+    category_id = Column(Integer, ForeignKey('category.id'))
+    category = relationship(Category)
+    user_id = Column(Integer, ForeignKey('user.id'))
+    user = relationship(User)
+    date_created = Column(DateTime, default=datetime.datetime.now())
+
+
 
 
 engine = create_engine('sqlite:///catalog.db')
