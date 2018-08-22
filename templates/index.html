@@ -1,11 +1,11 @@
 {% include 'partials/header.html' %}
-<h3>Categories</h3>
+<h3 class="heading">Categories</h3>
 {% for category in categories%}
   <a href="{{url_for('getItemsFromCategory', name = category.name)}}">{{category.name}}</a>
   <br>
 {%endfor%}
 <hr>
-<h3>10 Newest Items</h3>
+<h3 class="heading">10 Newest Items</h3>
 {%for item in items%}
     <a href="{{url_for('getItem', name=item.category.name,title=item.title)}}">{{item.title}}</a>
     <br>
