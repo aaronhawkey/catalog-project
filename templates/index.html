@@ -1,28 +1,14 @@
-<h1>Catalog App</h1>
-{% with messages = get_flashed_messages() %}
-  {% if messages %}
-    <ul class=flashes>
-    {% for message in messages %}
-      <li>{{ message }}</li>
-    {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
-<a href="{{url_for('login')}}">Login</a>
-<a href="{{url_for('register')}}">Make an Accout</a>
-<a href="{{url_for('logout')}}">Logout</a>
-<a href="{{url_for('createItem')}}">New Item</a>
-<a href="{{url_for('createCategory')}}">New Category</a>
-<hr>
-<br>
+{% include 'partials/header.html' %}
 <h3>Categories</h3>
 {% for category in categories%}
   <a href="{{url_for('getItemsFromCategory', name = category.name)}}">{{category.name}}</a>
   <br>
 {%endfor%}
 <hr>
-<h3>Items</h3>
+<h3>10 Newest Items</h3>
 {%for item in items%}
     <a href="{{url_for('getItem', name=item.category.name,title=item.title)}}">{{item.title}}</a>
     <br>
 {% endfor %}
+
+{%include 'partials/footer.html'%}

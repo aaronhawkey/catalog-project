@@ -134,7 +134,7 @@ def createItem():
             response.headers['Content-Type'] = 'application/json'
             return response
 
-        testQuery = session.query(Item).filter_by(title = title).one()
+        testQuery = session.query(Item).filter_by(title = title).first()
         if testQuery is not None:
             response = make_response(json.dumps('Item already exists'), 400)
             response.headers['Content-Type'] = 'application/json'
