@@ -1,3 +1,4 @@
+{% include 'partials/header.html' %}
 <h1>Edit Item {{item.title}}</h1>
 
 <form action="{{url_for('editItem', catName = item.category.name, itemName = item.title)}}" method="POST">
@@ -18,3 +19,4 @@
     
 
 </form>
+{%include 'partials/footer.html'%}

@@ -1,7 +1,12 @@
+{% include 'partials/header.html' %}
 <h1>Items under: {{category.name}}</h1>
-<a href="{{url_for('editCategory', category = category.name)}}">Edit Category</a>
-<br>
-<br>
+
+{%if 'user_id' in session%}
+    {%if category.user_id == session['user_id']%}
+    <a href="{{url_for('editCategory', category = category.name)}}">Edit Category</a>
+{%endif%}
+{%endif%}
+
 <hr>
 {%for item in items%}
 
@@ -10,3 +15,4 @@
 <br>
 <br>
 {%endfor%}
+{%include 'partials/footer.html'%}

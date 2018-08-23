@@ -1,3 +1,4 @@
+{% include 'partials/header.html' %}
 <h1>Are you sure you wish to delete {{item.title}}?</h1>
 
 <a href="{{url_for('getItem', name = item.category.name, title = item.title)}}">Back</a>
@@ -8,3 +9,5 @@
     <input type="hidden" name="itemID" value="{{item.id}}">
     <input type="submit" id="delete" name="delete" value="Delete">
 </form>
+
+{%include 'partials/footer.html'%}
