@@ -9,5 +9,5 @@
 <h3>Description</h3>
 <p>{{item.description}}</p>
 <p>Category: {{item.category.name}}</p>
-<a href="{{url_for('getItemsFromCategory', name=item.category.name)}}" role="button" class="btn btn-dark">Back</a>
+<a href="{{request.referrer or url_for('getItemsFromCategory', name=item.category.name)}}" role="button" class="btn btn-dark">Back</a>
 {%include 'partials/footer.html'%}

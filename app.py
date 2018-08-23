@@ -102,9 +102,13 @@ def logout():
     except:
         return redirect(url_for('index'))
     
+
     del login_session['user_id']
     flash('You are logged out!')
-    return redirect(url_for('index'))
+
+    return redirect(request.referrer)
+    
+
 
 
 @app.route('/catalog/items/new', methods=['GET', 'POST'])
