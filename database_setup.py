@@ -35,6 +35,14 @@ class Category(Base):
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)
 
+    @property
+    def serialize(self):
+        return{
+            'id': self.id,
+            'name': self.name,
+            'username': self.user.username
+        }
+
 
 
 class Item(Base):
@@ -48,6 +56,16 @@ class Item(Base):
     user = relationship(User)
     date_created = Column(DateTime, default=datetime.datetime.now())
 
+    @property
+    def serialize(self):
+        return{
+            'id': self.id,
+            'title': self.title,
+            'description': self.description,
+            'category_id': self.category_id,
+            'user_id': self.user_id,
+            'username': self.user.username
+        }
 
 
 

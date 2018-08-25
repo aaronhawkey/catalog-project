@@ -1,6 +1,7 @@
 # Flask Imports
 from flask import Flask, request, redirect, url_for, render_template, jsonify, flash, make_response
 from flask import session as login_session
+from flask import jsonify
 # Database Imports
 from database_setup import Base, User, Item, Category
 from sqlalchemy.ext.declarative import declarative_base
@@ -376,6 +377,29 @@ def getItem(name, title):
             return response
         
         return render_template('item.html', item = item)
+
+
+@app.route('/api/json', methods=['GET'])
+def json_api():
+    items = session.query(Item).all()
+    categories = session.query(Category).all()
+    cat_item = {'category':[]}
+    
+    # for category in categories:
+    #     return jsonify(category=[i.serialize for i in items])
+
+    i = 0
+    
+    for category in categories:
+        cat_item['category'].append(category.serialize)
+        cat_item['category'][i]['items'] = []
+        for item in items:
+            if category.id == item.category_id:
+                cat_item['category'][i]['items'].append(item.serialize)
+        i += 1
+    
+    return jsonify(cat_item)
+
 
 
 
