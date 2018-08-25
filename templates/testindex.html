@@ -2,21 +2,19 @@
 
 <div class="container">
     <div class="row">
-        <div class="col-sm-4">
-                <h2>Categories</h2>
+        <div class="col-lg-2">
+                <h2 class="heading">Categories</h2>
                 {% for category in categories%}
                 <ul>
                 <li><a href="{{url_for('getItemsFromCategory', name = category.name)}}">{{category.name}}</a></li>
               </ul>
               {%endfor%}
-
         </div>
-    </div>
-    <div class="row">
-        <div class="col-sm-8"></div>
-        <h2>Newest Items</h2>
+    
+        <div class="col-lg-10">
+        <h2 class="heading">Newest Items</h2>
         {%for item in items%}  
-        <div class="card item-card" style="width: 18rem;">
+        <div class="card item-card card-center" style="width: 18rem;">
             <div class="card-body">
                 <h5 class="card-title">{{item.title}}</h5>
                 <h6 class="card-subtitle mb-2 text-muted">Created by: {{item.user.username}}</h6>
@@ -26,8 +24,9 @@
             </div>
             </div>
         {% endfor %}
+            </div>
+        
     </div>
-</div>
-
+    </div>
 
 {%include 'partials/footer.html'%}

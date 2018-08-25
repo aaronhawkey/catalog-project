@@ -1,13 +1,20 @@
 {% include 'partials/header.html' %}
-<h1>{{item.title}}</h1>
-{%if 'user_id' in session%}
-    {%if session['user_id'] == item.user_id%}
-    <a href="{{url_for('editItem', catName = item.category.name, itemName = item.title)}}">Edit</a>
-    <a href="{{url_for('deleteItem', catName = item.category.name, itemName = item.title)}}">Delete</a>
-{%endif%}
-{%endif%}
-<h3>Description</h3>
-<p>{{item.description}}</p>
-<p>Category: {{item.category.name}}</p>
-<a href="{{request.referrer or url_for('getItemsFromCategory', name=item.category.name)}}" role="button" class="btn btn-dark">Back</a>
-{%include 'partials/footer.html'%}
+
+<div class="container">
+<h1 class="heading">{{item.title}}</h1>
+    {%if 'user_id' in session%}
+        {%if session['user_id'] == item.user_id%}
+        <a class="btn btn-dark btn-margin" href="{{url_for('editItem', catName = item.category.name, itemName = item.title)}}">Edit</a>
+        <a class="btn btn-dark btn-margin" href="{{url_for('deleteItem', catName = item.category.name, itemName = item.title)}}">Delete</a>
+    {%endif%}
+    {%endif%}
+</div>
+<div class="container">
+    <h3>Description</h3>
+    <p>{{item.description}}</p>
+    <p>Category: {{item.category.name}}</p>
+</div>
+<div class="container">
+    <a href="{{request.referrer or url_for('getItemsFromCategory', name=item.category.name)}}" role="button" class="btn btn-dark btn-margin">Back</a>
+    {%include 'partials/footer.html'%}
+</div>

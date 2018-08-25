@@ -1,11 +1,12 @@
 {% include 'partials/header.html' %}
-<h1 class="headding">Items under: {{category.name}}</h1>
-
-{%if 'user_id' in session%}
-    {%if category.user_id == session['user_id']%}
-    <a href="{{url_for('editCategory', category = category.name)}}">Edit Category</a>
-{%endif%}
-{%endif%}
+<div class="container">
+    <h1 class="heading">Items under: {{category.name}}</h1>
+    {%if 'user_id' in session%}
+        {%if category.user_id == session['user_id']%}
+            <a class="btn btn-primary btn-margin btn-margin" href="{{url_for('editCategory', category = category.name)}}">Edit Category</a>
+        {%endif%}
+    {%endif%}
+</div>
 
 <div class="container">
 <div class="row">
@@ -26,7 +27,7 @@
 </div>
 <div class="container">
     <div class="row">
-        <a href="{{request.referrer or url_for('index')}}" class="btn btn-dark">Back</a>
+        <a href="{{request.referrer or url_for('index')}}" class="btn btn-dark btn-margin">Back</a>
     </div>
 </div>
 
