@@ -7,7 +7,7 @@
             <form action="{{url_for('editCategory', category = category.name)}}" method="POST">
                 <div class="form-group">
                     <label for="name">Name</label>
-                    <input type="text" class="form-control" placeholder="{{category.name}}" name="newName">
+                    <input type="text" class="form-control" value="{{category.name}}" name="newName">
                 </div>
                 <input type="submit" class="btn btn-primary" value="Save">
             </form>

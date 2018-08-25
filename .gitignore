@@ -1,2 +1,2 @@
-catalog.db
-database_setup.pyc
+*.db
+*.pyc

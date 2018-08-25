@@ -1,4 +1,4 @@
-from sqlalchemy import Column,Integer,String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy import create_engine
@@ -17,14 +17,11 @@ class User(Base):
     password_hash = Column(String(64))
     date_created = Column(DateTime, default=datetime.datetime.now())
 
-
     def hash_password(self, password):
         self.password_hash = pwd_context.encrypt(password)
 
-    
     def verify_password(self, password):
         return pwd_context.verify(password, self.password_hash)
-
 
 
 class Category(Base):
@@ -42,7 +39,6 @@ class Category(Base):
             'name': self.name,
             'username': self.user.username
         }
-
 
 
 class Item(Base):
@@ -66,7 +62,6 @@ class Item(Base):
             'user_id': self.user_id,
             'username': self.user.username
         }
-
 
 
 engine = create_engine('sqlite:///catalog.db')
