@@ -81,11 +81,13 @@ def login():
     if request.method == 'POST':
         user = session.query(User).filter_by(username = request.form['username']).first()
         
+        # Checking if user is in DB
         if user is None:
             response = make_response(json.dumps('Username and Password combination invalid.'), 409)
             response.headers['Content-Type'] = 'application/json'
             return response
 
+        # Checking Password. If right, setting session
         if user.verify_password(request.form['password']):
             login_session['user_id'] = user.id
             flash('You are logged in as user %s' % user.id )
@@ -98,32 +100,27 @@ def login():
 
 @app.route('/logout', methods=['GET'])
 def logout():
-    try:
-        id = login_session['user_id']
-    except:
-        return redirect(url_for('index'))
-    
+    # Checking if session exists    
+    if 'user_id' not in login_session:
+        return redirect(request.referrer)
 
     del login_session['user_id']
     flash('You are logged out!')
-
     return redirect(request.referrer)
     
-
-
 
 @app.route('/catalog/items/new', methods=['GET', 'POST'])
 def createItem():
     if request.method == 'GET':
-        try:
-            user_id = login_session['user_id']
-        except:
+        # Checking if session exists
+        if 'user_id' not in login_session:
             return redirect(url_for('login'))
+        
         categories = session.query(Category).all()
         return render_template('newitem.html', categories = categories)
     
     if request.method == 'POST':
-        
+        # Checking if session exists.
         try:
             user_id = login_session['user_id']
         except:
@@ -134,17 +131,19 @@ def createItem():
         title = request.form['title']
         description = request.form['description']
         category = request.form['category']
-        if (category or description or category) is None:
-            response = make_response(json.dumps('Not all fields were filled out.'), 409)
-            response.headers['Content-Type'] = 'application/json'
-            return response
+
+        # Checking all fields are filled out
+        if category or description or category is None:
+            flash('Not all fields were completed. Please try again.')
+            return redirect(url_for('createItem'))
 
         testQuery = session.query(Item).filter_by(title = title).first()
+        # Making sure Item does not exist already.
         if testQuery is not None:
-            response = make_response(json.dumps('Item already exists'), 400)
-            response.headers['Content-Type'] = 'application/json'
-            return response
+            flash('Item already exists. Please try again.')
+            return redirect(url_for('createItem'))
         
+        # Tests passed. Creating Item.
         categoryObject = session.query(Category).filter_by(name=category).first()
         newItem = Item(title = title, description = description, category_id = categoryObject.id, user_id = user_id)
         session.add(newItem)
@@ -155,9 +154,9 @@ def createItem():
 
 @app.route('/catalog/<catName>/<itemName>/edit', methods=['GET', 'POST'])
 def editItem(catName,itemName):
-    # GET
     if request.method == 'GET':
         
+        # Checking active session.
         try:
             user_id = login_session['user_id']
         except:
@@ -165,35 +164,36 @@ def editItem(catName,itemName):
         
         item = session.query(Item).filter_by(title=itemName).first()
 
+        # Checking User Perms
         if user_id != item.user_id:
-            response = make_response(json.dumps('User not authorized to edit.'), 401)
-            response.headers['Content-Type'] = 'application/json'
-            return response
+            flash('Sorry. You do not have permission to edit.')
+            return redirect(request.referrer)
 
         cat = session.query(Category).filter_by(name=catName).first()
         categories = session.query(Category).all()
         
+        # Validating route
         if cat == None or item == None:
-            response = make_response(json.dumps('Page not found.'), 404)
-            response.headers['Content-Type'] = 'application/json'
-            return response
-        
+            flash('Sorry, item not found.')
+            return redirect(request.referrer)
         if cat.id != item.category_id:
-            response = make_response(json.dumps('Page not found.'), 404)
-            response.headers['Content-Type'] = 'application/json'
-            return response
+            flash('Sorry, item not found.')
+            return redirect(request.referrer)
+
         return render_template('edititem.html', item = item, categories = categories)
-    # POST
+
     if request.method == 'POST':
         newTitle = request.form['title']
         newDescription = request.form['description']
         newCatName = request.form['category']
         item = session.query(Item).filter_by(title=itemName).first()
+        # Checking active session
         try:
             user_id = login_session['user_id']
         except:
             return redirect(url_for('login'))
         
+        # Validating User Permissions
         if item.user_id != user_id:
             response = make_response(json.dumps('User not authorized to edit.'), 401)
             response.headers['Content-Type'] = 'application/json'
@@ -201,15 +201,15 @@ def editItem(catName,itemName):
 
 
         if newTitle == '':
-            response = make_response(json.dumps('Title must be completd.'), 409)
-            response.headers['Content-Type'] = 'application/json'
-            return response
+            flash('Edit failed. A title must be entered.')
+            return redirect(request.referrer)
     
         if newCatName == '':
             response = make_response(json.dumps('Category must be chosen.'), 409)
             response.headers['Content-Type'] = 'application/json'
             return response
 
+        # Editing Item in DB
         newCat = session.query(Category).filter_by(name=newCatName).first()
         item.title = newTitle
         item.description = newDescription
@@ -225,32 +225,33 @@ def editItem(catName,itemName):
 def deleteItem(catName,itemName):
     if request.method == 'GET':
         queryitem = session.query(Item).filter_by(title = itemName).first()
+        # Checking existing session
         try:
             user_id = login_session['user_id']
         except:
             return redirect(url_for('login'))
         
+        # Checking Route
         if queryitem == None:
-            response = make_response(json.dumps('Page not found.'), 404)
-            response.headers['Content-Type'] = 'application/json'
-            return response
+            flash('Sorry, page not found.')
+            return redirect(request.referrer)
         
+        # Validating route
         if queryitem.category.name != catName:
-            response = make_response(json.dumps('Page not found.'), 404)
-            response.headers['Content-Type'] = 'application/json'
-            return response
+            flash('Sorry, page not found.')
+            return redirect(request.referrer)
         
+        # Checking User Permissions
         if user_id != queryitem.user_id:
-            response = make_response(json.dumps('User not authorized access.'), 401)
-            response.headers['Content-Type'] = 'application/json'
-            return response
-        
+            flash('User not authorized access.')
+            return redirect(request.referrer)
         
         return render_template('deleteitem.html', item = queryitem)
 
     if request.method == 'POST':
         item = session.query(Item).filter_by(id = request.form['itemID']).first()
 
+        # Checking active session
         try:
             user_id = login_session['user_id']
         except:
@@ -258,12 +259,13 @@ def deleteItem(catName,itemName):
             response.headers['Content-Type'] = 'application/json'
             return response
 
-
+        # Checking if query returned item
         if item == None:
             response = make_response(json.dumps('Item not found.'), 409)
             response.headers['Content-Type'] = 'application/json'
             return response
 
+        # Validating user permissions
         if item.user_id != user_id:
             response = make_response(json.dumps('User not authorized access.'), 401)
             response.headers['Content-Type'] = 'application/json'
@@ -278,15 +280,19 @@ def deleteItem(catName,itemName):
 @app.route('/catalog/categories/new', methods=['GET', 'POST'])
 def createCategory():
     if request.method == 'GET':
+        # Checking active session
         try:
             user_id = login_session['user_id']
         except:
+            flash('Please login first.')
             return redirect(url_for('login'))
-
+        
         return render_template('newcategory.html')
+    
     if request.method == 'POST':
         name = request.form['name']
 
+        # Checking active session
         try:
             user_id = login_session['user_id']
         except:
@@ -294,20 +300,25 @@ def createCategory():
             response.headers['Content-Type'] = 'application/json'
             return response
 
+        # Checking input
         if name is None:
-            response = make_response(json.dumps('Not all fields were filled out.'), 409)
-            response.headers['Content-Type'] = 'application/json'
-            return response
+            flash('Please complete all fields.')
+            return redirect(request.referrer)
+
+        # Creating Category
         newCategory = Category(name = name, user_id = user_id)
         session.add(newCategory)
         session.commit()
         flash("%s category created." % newCategory.name)
+
         return redirect(url_for('index'))
 
 
 @app.route('/catalog/<category>/edit', methods=['GET', 'POST'])
 def editCategory(category):
     if request.method == 'GET':
+        
+        # Checking active session
         try:
             user_id = login_session['user_id']
         except:
@@ -315,16 +326,17 @@ def editCategory(category):
         
         oldCategory = session.query(Category).filter_by(name=category).first()
 
+        # Validating user permissions
         if user_id != oldCategory.user_id:
-            response = make_response(json.dumps('User not authorized access.'), 401)
-            response.headers['Content-Type'] = 'application/json'
-            return response
+            flash('User is not authorized to edit.')
+            return redirect(request.referrer)
 
         return render_template('editcategory.html', category=oldCategory)
     
     if request.method == 'POST':
         newName = request.form['newName']
 
+        # Checking active session
         try:
             user_id = login_session['user_id']
         except:
@@ -332,30 +344,33 @@ def editCategory(category):
             response.headers['Content-Type'] = 'application/json'
             return response
         
+        # Checking input exists
         if newName is None:
-            response = make_response(json.dumps('Not all fields were filled out.'), 409)
-            response.headers['Content-Type'] = 'application/json'
-            return response
+            flash('All form fields must be filled out. Please try again')
+            return redirect(request.referrer)
 
         test = session.query(Category).filter_by(name = newName).first()
 
+        # Checks to see if category already exists
         if test is not None:
-            response = make_response(json.dumps('Category already exsists.'), 409)
-            response.headers['Content-Type'] = 'application/json'
-            return response
+            flash('Category name already exists. Please try again.')
+            return redirect(request.referrer)
 
         oldCategory = session.query(Category).filter_by(name=category).first()
 
+        # Validating user permissions
         if oldCategory.user_id != user_id:
             response = make_response(json.dumps('User not authorized access.'), 401)
             response.headers['Content-Type'] = 'application/json'
             return response
         
-        
+        # Editing Category
+
         oldCategory.name = newName
         session.add(oldCategory)
         session.commit()
         flash('%s category changed to: %s' % (category, newName))
+
         return redirect(url_for('index'))
         
 
@@ -372,24 +387,23 @@ def getItem(name, title):
         thecategory = session.query(Category).filter_by(name= name).first()
         item = session.query(Item).filter_by(title = title).first()
         if item.category_id != thecategory.id:
-            response = make_response(json.dumps('Page not found'), 404)
-            response.headers['Content-Type'] = 'application/json'
-            return response
+            flash('Sorry, page item not found.')
+            return redirect(request.referrer)
         
         return render_template('item.html', item = item)
 
 
 @app.route('/api/json', methods=['GET'])
 def json_api():
+    """Returns a JSON object of all items orginized by category."""
     items = session.query(Item).all()
     categories = session.query(Category).all()
+    
+    # Establishing Dict
     cat_item = {'category':[]}
-    
-    # for category in categories:
-    #     return jsonify(category=[i.serialize for i in items])
 
+    # Assigning out items to category
     i = 0
-    
     for category in categories:
         cat_item['category'].append(category.serialize)
         cat_item['category'][i]['items'] = []

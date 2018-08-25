@@ -1,22 +1,28 @@
 {% include 'partials/header.html' %}
-<h1>Edit Item {{item.title}}</h1>
-
-<form action="{{url_for('editItem', catName = item.category.name, itemName = item.title)}}" method="POST">
-    <label for="title">Title</label>
-    <input type="text" value="{{item.title}}" name="title" autocomplete="off">
-    <br>
-    <label for="description">Description</label>
-    <input type="text" name="description" value="{{item.description}}" autocomplete="off">
-    <br>
-    <label for="category">Category</label>
-    <select placeholder="{{item.category.name}}" name="category">
-        {%for cat in categories%}
-        <option value="{{cat.name}}" name="{{cat.name}}">{{cat.name}}</option>
-        {%endfor%}
-    </select>
-    <br>
-    <input type="submit" value="Edit">
-    
-
-</form>
+<h1 class="heading">Edit Item {{item.title}}</h1>
+<div class="container">
+    <div class="row">
+        <div class="col-sm-6">
+            <form action="{{url_for('editItem', catName = item.category.name, itemName = item.title)}}" method="POST">
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" class="form-control" value="{{item.title}}" name="title" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <input type="text" class="form-control" name="description" value="{{item.description}}" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select placeholder="{{item.category.name}}" class="form-control" name="category">
+                        {%for cat in categories%}
+                        <option value="{{cat.name}}" name="{{cat.name}}">{{cat.name}}</option>
+                        {%endfor%}
+                    </select>
+                </div>
+                <input type="submit" class="btn btn-primary" value="Edit">
+            </form>
+        </div>
+    </div>
+</div>
 {%include 'partials/footer.html'%}

@@ -7,7 +7,22 @@ h1{
     padding: 10px 10px;
 }
 .card-center {
-        margin: 0 auto; /* Added */
-        float: none; /* Added */
-        margin-bottom: 10px; /* Added */
+        margin: 0 auto;
+        float: none; 
+        margin-bottom: 10px; 
+}
+
+.item-container{
+    padding: 15px;
+}
+
+.btn-margin{
+    margin: 10px 10px;
+}
+
+@media only screen and (min-width: 1000px){
+    .btn-margin-sides{
+        margin: 0 5px 0 5px;
+    }
+
 }
