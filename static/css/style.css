@@ -2,12 +2,20 @@
     text-align: center;
     padding: 20px 0 20px 0;
 }
-
+/*
 h1{
     padding: 10px 10px;
 }
 .card-center {
-        margin: 0 auto; /* Added */
-        float: none; /* Added */
-        margin-bottom: 10px; /* Added */
+        /*margin: 0 auto;
+        float: none; 
+        margin-bottom: 10px; 
 }
+
+.item-container{
+    padding: 15px;
+}
+
+.item-card{
+    padding: 20px;
+}*/

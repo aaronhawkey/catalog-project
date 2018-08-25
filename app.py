@@ -26,7 +26,7 @@ app = Flask(__name__)
 def index():
     categories = session.query(Category).all()
     items = session.query(Item).order_by(Item.id.desc()).limit(10).all()
-    return render_template('index.html', categories = categories, items = items)
+    return render_template('testindex.html', categories = categories, items = items)
 
 
 @app.route('/register', methods=['GET','POST'])

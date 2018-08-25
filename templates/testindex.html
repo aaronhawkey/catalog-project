@@ -1,0 +1,33 @@
+{% include 'partials/header.html' %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-4">
+                <h2>Categories</h2>
+                {% for category in categories%}
+                <ul>
+                <li><a href="{{url_for('getItemsFromCategory', name = category.name)}}">{{category.name}}</a></li>
+              </ul>
+              {%endfor%}
+
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-8"></div>
+        <h2>Newest Items</h2>
+        {%for item in items%}  
+        <div class="card item-card" style="width: 18rem;">
+            <div class="card-body">
+                <h5 class="card-title">{{item.title}}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">Created by: {{item.user.username}}</h6>
+                <p class="card-text">{{item.description[0:100]}}...</p>
+                <a href="{{url_for('getItem', name=item.category.name, title=item.title)}}" class="card-link">View</a>
+                <a href="{{url_for('getItemsFromCategory', name = item.category.name)}}" class="card-link">Category: {{item.category.name}}</a>
+            </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+
+{%include 'partials/footer.html'%}
