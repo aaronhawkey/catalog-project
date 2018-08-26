@@ -11,7 +11,12 @@ from sqlalchemy import create_engine
 import json
 import random
 import string
+import httplib2
+# Oauth2 
+from oauth2client.client import flow_from_clientsecrets
+from oauth2client.client import FlowExchangeError
 
+# Database connection
 engine = create_engine('sqlite:///catalog.db',
                        connect_args={'check_same_thread': False})
 
@@ -20,6 +25,12 @@ DBsession = sessionmaker(bind=engine)
 session = DBsession()
 
 
+# Oauth credentials
+CLIENT_ID = json.loads(
+    open('client_secrets.json', 'r').read())['web']['client_id']
+
+
+# Flask Initialization
 app = Flask(__name__)
 
 
@@ -75,8 +86,10 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-
     if request.method == 'GET':
+        state = ''.join(random.choice(string.ascii_uppercase + string.digits)
+                    for x in xrange(32))
+        login_session['state'] = state
         return render_template('login.html')
 
     if request.method == 'POST':
@@ -111,6 +124,22 @@ def logout():
     del login_session['user_id']
     flash('You are logged out!')
     return redirect(request.referrer)
+
+
+@app.route('/gconnect', methods=['POST'])
+def gconnect():
+
+    # Validate the State Token
+    if 'state' not in login_session:
+        flash('State token incorrect. Please try again.')
+        return redirect(url_for('index'))
+
+    code = request.data
+
+
+
+    return 'Blah'
+
 
 
 @app.route('/catalog/items/new', methods=['GET', 'POST'])
