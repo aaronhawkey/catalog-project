@@ -1,4 +1,10 @@
 {% include 'partials/header.html' %}
+
+<!--Google Sign In Scripts-->
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script src="//apis.google.com/js/platform.js?onload=start"> </script>
+<!--End of Google Scripts-->
+
 <h1 class="heading">Register</h1>
 <div class="container">
     <div class="row">
@@ -23,5 +29,51 @@
         </div>
     </div>
 </div>
+<br>
+<div class="container">
+    <div class="row">
+            <div id="signinButton">
+                <span class="g-signin"
+                data-scope="openid email"
+                data-clientid="677065135925-j7b2qj7pcmsrutv0nmnine5qbol0ekc0.apps.googleusercontent.com"
+                data-redirecturi="postmessage"
+                data-accesstype="offline"
+                data-cookiepolicy="single_host_origin"
+                data-callback="signInCallback"
+                data-approvalprompt="force">
+                </span>
+            
+            </div>
+    </div>
+</div>
+
+<div id="result"></div>
+
+
+<script>
+    function signInCallback(authResult) {
+  if (authResult['code']) {
+    $('#signinButton').attr('style', 'display: none');
+    $.ajax({
+      type: 'POST',
+      url: '/gconnect?state={{state}}',
+      processData: false,
+      data: authResult['code'],
+      contentType: 'application/octet-stream; charset=utf-8',
+      success: function(result) {
+        if (result) {
+            $('#result').html('Login Successful!</br>'+ result + '</br>Redirecting...')
+            setTimeout(function() {
+                window.location.href = "/";
+         }, 1000);
+      } else if (authResult['error']) {
+    console.log('There was an error: ' + authResult['error']);
+  } else {
+        $('#result').html('Failed to make a server-side call. Check your configuration and console.');
+         }
+      }
+      
+  }); } }
+</script>
 
 {%include 'partials/footer.html'%}
