@@ -1,8 +1,10 @@
 # Flask Imports
-from flask import Flask, request, redirect, url_for, render_template, jsonify, flash, make_response
+from flask import Flask, request, redirect, url_for, render_template
 from flask import session as login_session
+
 from flask import jsonify
 import requests
+
 # Database Imports
 from database_setup import Base, User, Item, Category
 from sqlalchemy.ext.declarative import declarative_base
@@ -102,10 +104,8 @@ def login():
 
         # Checking if user is in DB
         if user is None:
-            response = make_response(json.dumps(
-                'Username and Password combination invalid.'), 409)
-            response.headers['Content-Type'] = 'application/json'
-            return response
+            flash('Username and password incorrect.')
+            return redirect(request.referrer)
 
         # Checking Password. If right, setting session
         if user.verify_password(request.form['password']):
@@ -113,10 +113,8 @@ def login():
             flash('You are logged in as user %s' % user.id)
             return redirect(url_for('index'))
         else:
-            response = make_response(json.dumps(
-                'Username and Password combination invalid.'), 409)
-            response.headers['Content-Type'] = 'application/json'
-            return response
+            flash('Username and password incorrect.')
+            return redirect(request.referrer)
 
 
 @app.route('/logout', methods=['GET'])
@@ -244,6 +242,7 @@ def createItem():
         category = request.form['category']
 
         # Checking all fields are filled out
+
         if str(title) is '' or str(description) is '' or str(category) is '':
             flash('Not all fields were completed. Please try again.')
             return redirect(url_for('createItem'))
@@ -417,8 +416,15 @@ def createCategory():
             return response
 
         # Checking input
-        if name is None:
+        if str(name) is '':
             flash('Please complete all fields.')
+            return redirect(request.referrer)
+
+        # Check if Category Exists
+        testQuery = session.query(Category).filter_by(name= name).first()
+
+        if testQuery is not None:
+            flash('Category already exists. Please enter a new name.')
             return redirect(request.referrer)
 
         # Creating Category
@@ -461,7 +467,7 @@ def editCategory(category):
             return response
 
         # Checking input exists
-        if newName is None:
+        if str(newName) is '':
             flash('All form fields must be filled out. Please try again')
             return redirect(request.referrer)
 
@@ -535,4 +541,4 @@ def json_api():
 if __name__ == '__main__':
     app.debug = True
     app.secret_key = 'ASDhshhWj1654g651j51cvxs5d61as6d5'
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=8000)
