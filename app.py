@@ -13,7 +13,7 @@ import json
 import random
 import string
 import httplib2
-# Oauth2 
+# Oauth2
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 
@@ -45,7 +45,10 @@ def index():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'GET':
-        return render_template('register.html')
+        state = ''.join(random.choice(string.ascii_uppercase + string.digits)
+                        for x in xrange(32))
+        login_session['state'] = state
+        return render_template('register.html', state=state)
 
     if request.method == 'POST':
         username = request.form['username']
@@ -89,9 +92,9 @@ def register():
 def login():
     if request.method == 'GET':
         state = ''.join(random.choice(string.ascii_uppercase + string.digits)
-                    for x in xrange(32))
+                        for x in xrange(32))
         login_session['state'] = state
-        return render_template('login.html', state = state)
+        return render_template('login.html', state=state)
 
     if request.method == 'POST':
         user = session.query(User).filter_by(
@@ -123,6 +126,10 @@ def logout():
         return redirect(request.referrer)
 
     del login_session['user_id']
+    if 'access_token' in login_session:
+        del login_session['access_token']
+        del login_session['gplus_id']
+
     flash('You are logged out!')
     return redirect(request.referrer)
 
@@ -168,7 +175,7 @@ def gconnect():
             json.dumps("Token's user ID doesn't match given user ID."), 401)
         response.headers['Content-Type'] = 'application/json'
         return response
-    
+
     # Checking validity for App
     if result['issued_to'] != CLIENT_ID:
         response = make_response(
@@ -196,24 +203,21 @@ def gconnect():
 
     user_data = answer.json()
 
-    user = session.query(User).filter_by(email = user_data['email']).first()
+    user = session.query(User).filter_by(email=user_data['email']).first()
 
     if user is not None:
         login_session['user_id'] = user.id
         flash('Logged in as %s' % user.username)
-        return redirect(url_for('index'))
-    
+        return 'User Logged in!'
 
-    newUser = User(username = user_data['email'], email=user_data['email'])
+    newUser = User(username=user_data['email'], email=user_data['email'])
     session.add(newUser)
     session.commit()
-    userQuery = session.query(User).filter_by(email = newUser.email).first()
-    login_session['user_id']= userQuery.id
+    userQuery = session.query(User).filter_by(email=newUser.email).first()
+    login_session['user_id'] = userQuery.id
+    flash('Logged in as %s' % userQuery.username)
 
-    return redirect(url_for('index'))
-    
-
-
+    return "Account Created. User now Logged in!"
 
 
 @app.route('/catalog/items/new', methods=['GET', 'POST'])
@@ -240,7 +244,7 @@ def createItem():
         category = request.form['category']
 
         # Checking all fields are filled out
-        if category or description or category is None:
+        if str(title) is '' or str(description) is '' or str(category) is '':
             flash('Not all fields were completed. Please try again.')
             return redirect(url_for('createItem'))
 
@@ -264,7 +268,6 @@ def createItem():
 @app.route('/catalog/<catName>/<itemName>/edit', methods=['GET', 'POST'])
 def editItem(catName, itemName):
     if request.method == 'GET':
-
         # Checking active session.
         try:
             user_id = login_session['user_id']
@@ -296,6 +299,7 @@ def editItem(catName, itemName):
         newDescription = request.form['description']
         newCatName = request.form['category']
         item = session.query(Item).filter_by(title=itemName).first()
+
         # Checking active session
         try:
             user_id = login_session['user_id']
@@ -323,7 +327,7 @@ def editItem(catName, itemName):
         newCat = session.query(Category).filter_by(name=newCatName).first()
         item.title = newTitle
         item.description = newDescription
-        item.cat = newCat
+        item.category = newCat
 
         session.add(item)
         session.commit()

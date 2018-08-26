@@ -1,13 +1,16 @@
 {% include 'partials/header.html' %}
-<h1>Are you sure you wish to delete {{item.title}}?</h1>
+<div class="container">
+<h1 class="heading">Are you sure you wish to delete {{item.title}}?</h1>
+</div>
 
-<a href="{{url_for('getItem', name = item.category.name, title = item.title)}}">Back</a>
 
-
-
+<div class="container">
+<a class="btn btn-dark" href="{{url_for('getItem', name = item.category.name, title = item.title)}}">Back</a>
+<br>
+<br>
 <form action="{{url_for('deleteItem', catName = item.category.name, itemName = item.title)}}" method="POST">
     <input type="hidden" name="itemID" value="{{item.id}}">
-    <input type="submit" id="delete" name="delete" value="Delete">
+    <input class="btn btn-danger" type="submit" id="delete" name="delete" value="Delete">
 </form>
-
+</div>
 {%include 'partials/footer.html'%}
