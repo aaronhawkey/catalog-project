@@ -18,7 +18,7 @@ from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 
 # Database connection
-engine = create_engine('sqlite:///catalog.db',
+engine = create_engine('postgresql://postgres:test123@localhost/catalog',
                        connect_args={'check_same_thread': False})
 
 Base.metadata.bind = engine
@@ -533,6 +533,6 @@ def json_api():
 
 
 if __name__ == '__main__':
-    app.debug = True
+    app.debug = false
     app.secret_key = 'ASDhshhWj1654g651j51cvxs5d61as6d5'
-    app.run(host='0.0.0.0', port=5000)
+    app.run()
